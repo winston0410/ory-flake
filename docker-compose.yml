@@ -1,0 +1,56 @@
+---
+version: "3.7"
+
+services:
+  kratos-selfservice-ui-node:
+    image: oryd/kratos-selfservice-ui-node:v0.8.0-alpha.3
+    environment:
+      - KRATOS_PUBLIC_URL=http://kratos:4433/
+      - KRATOS_BROWSER_URL=http://127.0.0.1:4433/
+    networks:
+      - intranet
+
+  kratos-migrate:
+    image: oryd/kratos:v0.8.0-alpha.3
+    depends_on:
+      - postgresd
+    environment:
+      - DSN=postgres://kratos:secret@postgresd:5432/kratos?sslmode=disable&max_conns=20&max_idle_conns=4
+      - LOG_LEVEL=trace
+    command: -c /etc/kratos/kratos.yml migrate sql -e --yes
+    volumes:
+      - type: bind
+        source: ./kratos
+        target: /etc/kratos
+    networks:
+      - intranet
+
+  kratos:
+    image: oryd/kratos:v0.8.0-alpha.3
+    depends_on:
+      - kratos-migrate
+    ports:
+      - "4433:4433" # public
+      - "4434:4434" # admin
+    environment:
+      - DSN=postgres://kratos:secret@postgresd:5432/kratos?sslmode=disable&max_conns=20&max_idle_conns=4
+      - LOG_LEVEL=trace
+    command: serve -c /etc/kratos/kratos.yml --dev --watch-courier
+    volumes:
+      - type: bind
+        source: ./kratos
+        target: /etc/kratos
+    networks:
+      - intranet
+
+  postgresd:
+    image: postgres:12.8
+    environment:
+      - POSTGRES_USER=kratos
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_DB=kratos
+    networks:
+      - intranet
+
+networks:
+  intranet:

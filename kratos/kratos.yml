@@ -1,0 +1,22 @@
+---
+version: v0.8.0-alpha.3
+
+dsn: postgres://kratos:secret@postgresd:5432/kratos?sslmode=disable&max_conns=20&max_idle_conns=4
+
+identity:
+  default_schema_url: file:///etc/kratos/identity.schema.json
+
+serve:
+  public:
+    base_url: http://127.0.0.1:4433/
+    cors:
+      enabled: true
+  admin:
+    base_url: http://kratos:4434/
+
+selfservice:
+  default_browser_return_url: http://127.0.0.1:4455/
+
+courier:
+  smtp:
+    connection_uri: smtps://test:test@mailslurper:1025/?skip_ssl_verify=true

@@ -2,16 +2,8 @@
 version: "3.7"
 
 services:
-  kratos-selfservice-ui-node:
-    image: oryd/kratos-selfservice-ui-node:v0.8.0-alpha.3
-    environment:
-      - KRATOS_PUBLIC_URL=http://kratos:4433/
-      - KRATOS_BROWSER_URL=http://127.0.0.1:4433/
-    networks:
-      - intranet
-
   kratos-migrate:
-    image: oryd/kratos:v0.8.0-alpha.3
+    image: oryd/kratos:latest
     depends_on:
       - postgresd
     environment:
@@ -26,9 +18,11 @@ services:
       - intranet
 
   kratos:
-    image: oryd/kratos:v0.8.0-alpha.3
+    #  image: oryd/kratos:v0.8.0-alpha.3
+    image: oryd/kratos:latest
     depends_on:
       - kratos-migrate
+      - mailslurper
     ports:
       - "4433:4433" # public
       - "4434:4434" # admin
@@ -44,11 +38,19 @@ services:
       - intranet
 
   postgresd:
-    image: postgres:12.8
+    image: postgres:14
     environment:
       - POSTGRES_USER=kratos
       - POSTGRES_PASSWORD=secret
       - POSTGRES_DB=kratos
+    networks:
+      - intranet
+
+  mailslurper:
+    image: oryd/mailslurper:latest-smtps
+    ports:
+      - '4436:4436'
+      - '4437:4437'
     networks:
       - intranet
 

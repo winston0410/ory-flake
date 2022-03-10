@@ -5,18 +5,65 @@ dsn: postgres://kratos:secret@postgresd:5432/kratos?sslmode=disable&max_conns=20
 
 identity:
   default_schema_url: file:///etc/kratos/identity.schema.json
+  schemas:
+    - id: customer
+      url: file:///etc/kratos/identity.schema.json
 
 serve:
   public:
-    base_url: http://127.0.0.1:4433/
+    base_url: http://0.0.0.0:4433
     cors:
       enabled: true
   admin:
-    base_url: http://kratos:4434/
+    base_url: http://0.0.0.0:4434
 
 selfservice:
-  default_browser_return_url: http://127.0.0.1:4455/
+  default_browser_return_url: http://0.0.0.0:3000/dashboard
+  whitelisted_return_urls:
+    - http://0.0.0.0:3000/
+  flows:
+    recovery:
+      enabled: true
+      ui_url: http://0.0.0.0:3000/recovery
+    error:
+      ui_url: http://0.0.0.0:3000/error
+    verification:
+      enabled: true
+      ui_url: http://0.0.0.0:3000/verify
+    settings:
+      ui_url: http://0.0.0.0:3000/settings
+    registration:
+      ui_url: http://0.0.0.0:3000/register
+      after:
+        oidc:
+          hooks:
+            - hook: session
+        password:
+          hooks:
+            - hook: session
+    login:
+      ui_url: http://0.0.0.0:3000/login
+
+  methods:
+    password:
+      enabled: true
+    oidc:
+      enabled: true
+      config:
+        providers:
+          - id: github
+            provider: github
+            client_id: 89c65bdb799addc69955
+            client_secret: b1df9bcd628508be880001d74785a0a2832c048d
+            mapper_url: file:///etc/kratos/oidc/github.jsonnet
+            scope:
+              - user:email
+    link:
+      enabled: true
+#  hashers:
+#  argon2:
 
 courier:
   smtp:
+    from_address: no-reply@ory.kratos.sh
     connection_uri: smtps://test:test@mailslurper:1025/?skip_ssl_verify=true
